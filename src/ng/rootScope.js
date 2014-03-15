@@ -1078,6 +1078,7 @@ function $RootScopeProvider(){
       var head = scope, tail = scope;
       while (true) {
         // Moving head
+        if (scope.$$watchersCurrentTail) return scope.$$watchersCurrentTail;
         while (head.$parent && !head.$$watchersCurrentTail && (
               !head.$$prevSibling ||
               !head.$parent.$$watchersTail ||                                      // this is, the parent
