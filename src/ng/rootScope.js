@@ -1052,10 +1052,13 @@ function $RootScopeProvider(){
 
     function insertWatcher(watcher) {
       var scope = watcher.scope;
-      watcher.prev = findLastWatcherBefore(watcher.scope);
-      watcher.next = watcher.prev ? watcher.prev.next : findFirstWatcherAfter(watcher.scope);
+      watcher.prev = findLastWatcherBefore(scope);
+      watcher.next = watcher.prev ? watcher.prev.next : findFirstWatcherAfter(scope);
       if (watcher.prev) watcher.prev.next = watcher;
       if (watcher.next) watcher.next.prev = watcher;
+
+      // We have all the information for the current watcher, need to fix this scope and
+      // the scope hierarchy head and tail
       scope.$$watchersCurrentTail = watcher;
       while (scope && (scope.$$watchersHead === null || scope.$$watchersHead === watcher.next ||
           scope.$$watchersTail === watcher.prev)) {
@@ -1070,17 +1073,33 @@ function $RootScopeProvider(){
     }
 
     function findLastWatcherBefore(scope) {
-      var result = null;
-      while (scope && !result) {
-        result = scope.$$watchersCurrentTail;
-        while (!result && scope.$$prevSibling) {
-          result = (scope = scope.$$prevSibling).$$watchersTail;
-        }
-        scope = scope.$parent;
+      // Insanity warning: head is searching for a watcher moving backwards and tail is
+      // doing the same search moving forwards
+      var head = scope, tail = scope;
+      while (true) {
+        // Moving head
+        while (head.$parent && !head.$$watchersCurrentTail && (
+              !head.$$prevSibling ||
+              !head.$parent.$$watchersTail ||                                      // this is, the parent
+              head.$parent.$$watchersTail === head.$parent.$$watchersCurrentTail)) // has no child watchers
+          head = head.$parent;
+        if (!head.$parent || head.$$watchersCurrentTail) return head.$$watchersCurrentTail;
+        head = head.$$prevSibling;
+
+        // Moving tail
+        if (tail.$$watchersHead) return tail.$$watchersHead.prev;
+        while (tail.$parent && !tail.$$watchersTail && (
+              !tail.$$nextSibling ||
+              !tail.$parent.$$watchersTail ||                                      // this is, the parent
+              tail.$parent.$$watchersTail === tail.$parent.$$watchersCurrentTail)) // has no child watchers
+          tail = tail.$parent;
+        if (!tail.$parent || tail.$$watchersTail) return tail.$$watchersTail;
+        tail = tail.$$nextSibling;
       }
-      return result;
     }
 
+    // This function short-circuit the search with the assumption that
+    // findLastWatcherBefore(scope) already returned `null`
     function findFirstWatcherAfter(scope) {
       while (scope && !scope.$$watchersHead) {
         scope = scope.$parent;
@@ -1091,7 +1110,8 @@ function $RootScopeProvider(){
     function removeWatchers(scope, head, tail) {
       if (head.prev) head.prev.next = tail.next;
       if (tail.next) tail.next.prev = head.prev;
-      scope.$$watchersCurrentTail = (head.prev && head.prev.scope === scope ? head.prev : null);
+      if (head === scope.$$watchersCurrentTail)
+        scope.$$watchersCurrentTail = (head.prev && head.prev.scope === scope ? head.prev : null);
       while (scope && (scope.$$watchersHead === head || scope.$$watchersTail === tail)) {
         if (scope.$$watchersHead === head && scope.$$watchersTail === tail) {
           scope.$$watchersHead = scope.$$watchersTail = null;
