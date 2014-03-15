@@ -7,23 +7,40 @@
 * - emit-like traverse
 * - an abstraction of the `node`
 */
+
+/*
+* Node holds
+*   For a watcher, a single watcher
+*   For a listener, a single listener
+*/
 var Node = function(scope) {
-  this.scope  = scope;    // scope for the node
   this.prev   = null;     // Pointer to the previous node
   this.next   = null;     // Pointer to the next node
 }
 
+/*
+* NodeGroup holds
+*   Holds references to _all_ the heads/tails
+*   that a scope points to for watchers/listener
+*/
 var NodeGroup = function() {
-  this.listHead = null;     // The first node in group including subgroups
-  this.currentTail = null;  // The last node in the group, not including subgroups
-  this.listTail = null;     // The last node in group, including subgroups
+  this.scope        = scope;  // scope for the node
+  this.listHeads    = {};     // The first node in group including subgroups
+  this.currentTails = {};     // The last node in the group, not including subgroups
+  this.listTails    = {};     // The last node in group, including subgroups
 }
+
+// tail.$parent.nodeGroup.listTails[namespace] === tail.$parent.nodeGroup.currentTails[namespace]
 
 var LinkedList = function() {
   this.head = this.tail = null;
 }
 
-LinkedList.prototype.insert = function(node) {}
+LinkedList.prototype.insert = function(scope) {
+  scope.nodeGroup = new NodeGroup(scope);
+  var node = new Node(scope);
+  // Insert code
+}
 LinkedList.prototype.remove = function(scope, head, tail) {}
 LinkedList.prototype.traverse = function(fn) {}
 
