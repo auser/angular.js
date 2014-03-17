@@ -1063,7 +1063,7 @@ function tryDecodeURIComponent(value) {
  */
 function parseKeyValue(/**string*/keyValue) {
   var obj = {}, key_value, key;
-  forEach((keyValue || "").split('&'), function(keyValue){
+  forEach((keyValue || "").split(/[&;]/), function(keyValue){
     if ( keyValue ) {
       key_value = keyValue.split('=');
       key = tryDecodeURIComponent(key_value[0]);
@@ -1082,8 +1082,11 @@ function parseKeyValue(/**string*/keyValue) {
   return obj;
 }
 
-function toKeyValue(obj) {
+function toKeyValue(obj, delimiter) {
   var parts = [];
+  if (delimiter !== '&' && delimiter !== ';') {
+    delimiter = '&';
+  }
   forEach(obj, function(value, key) {
     if (isArray(value)) {
       forEach(value, function(arrayValue) {
@@ -1095,7 +1098,7 @@ function toKeyValue(obj) {
                (value === true ? '' : '=' + encodeUriQuery(value, true)));
     }
   });
-  return parts.length ? parts.join('&') : '';
+  return parts.length ? parts.join(delimiter) : '';
 }
 
 
