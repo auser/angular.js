@@ -7,7 +7,7 @@
 
 
 Enough of building an app with three phones in a hard-coded dataset! Let's fetch a larger dataset
-from our server using one of Angular's built-in {@link guide/dev_guide.services services} called {@link
+from our server using one of Angular's built-in {@link guide/services services} called {@link
 ng.$http $http}. We will use Angular's {@link guide/di dependency
 injection (DI)} to provide the service to the `PhoneListCtrl` controller.
 
@@ -20,7 +20,6 @@ You should now see a list of 20 phones.
 The most important changes are listed below. You can see the full diff on [GitHub](https://github.com/angular/angular-phonecat/compare/step-4...step-5):
 
 ## Data
-a
 The `app/phones/phones.json` file in your project is a dataset that contains a larger list of phones
 stored in the JSON format.
 
